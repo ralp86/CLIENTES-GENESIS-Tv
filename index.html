@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Cuentas - Panel IPTV</title>
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --success: #22c55e;
+            --primary: #3b82f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(rgba(15, 23, 42, 0.88), rgba(15, 23, 42, 0.88)), url('lateral-matrix.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.75)), url('banner-matrix.png');
+            background-size: cover;
+            background-position: center;
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin: 0;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: background 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+        }
+        .btn:hover { background-color: #2563eb; }
+        .btn-success { background-color: var(--success); color: #000; }
+        .btn-success:hover { background-color: #16a34a; color: #fff; }
+        .btn-danger { background-color: var(--danger); }
+        .btn-danger:hover { background-color: #dc2626; }
+        .btn-secondary { background-color: #475569; }
+        .btn-secondary:hover { background-color: #334155; }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background-color: var(--card-bg);
+            padding: 15px 20px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+        }
+        .stat-card h3 {
+            margin: 0 0 5px 0;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+        .stat-card .number {
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .search-box input {
+            padding: 10px 15px;
+            font-size: 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            width: 320px;
+        }
+
+        /* Botón fantasma vertical lateral */
+        .btn-lateral-buscar {
+            position: fixed;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(59, 130, 246, 0.25);
+            color: var(--text-color);
+            border: 1px solid rgba(59, 130, 246, 0.4);
+            border-right: none;
+            padding: 15px 8px;
+            border-radius: 8px 0 0 8px;
+            cursor: pointer;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            font-weight: 600;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            z-index: 99;
+            backdrop-filter: blur(4px);
+            transition: all 0.2s ease;
+        }
+        .btn-lateral-buscar:hover {
+            background-color: rgba(59, 130, 246, 0.8);
+            padding-right: 12px;
+        }
+
+        .table-container {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        th {
+            background-color: #0f172a;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+
+        tr:hover {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        tr.vencido {
+            background-color: rgba(239, 68, 68, 0.12);
+        }
+        tr.vencido td {
+            border-color: rgba(239, 68, 68, 0.25);
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+        .badge.danger { background-color: var(--danger); color: white; }
+        .badge.success { background-color: var(--success); color: white; }
+        .badge.warning { background-color: var(--warning); color: black; }
+
+        .client-id {
+            color: var(--text-muted);
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+
+        .password-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-wa {
+            background-color: #25d366;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.85rem;
+            transition: background 0.2s;
+        }
+        .btn-wa:hover { background-color: #1ebd5b; }
+
+        .btn-wa.aviso {
+            background-color: #f59e0b;
+            color: #000;
+        }
+        .btn-wa.aviso:hover {
+            background-color: #d97706;
+        }
+
+        .actions-cell {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .btn-icon {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            color: var(--text-muted);
+            transition: color 0.2s;
+        }
+        .btn-icon:hover { color: var(--text-color); }
+        .btn-icon.delete:hover { color: var(--danger); }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 500px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-content h2 { margin-top: 0; margin-bottom: 20px; font-size: 1.4rem; }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: #0f172a;
+            color: var(--text-color);
+            box-sizing: border-box;
+        }
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Botón lateral fantasma para buscar rápido -->
+<button class="btn-lateral-buscar" onclick="enfocarBuscador()" title="Buscar cliente rápido">🔍 Buscar</button>
+
+<div class="container">
+    <header>
+        <div>
+            <h1>Panel de Control - Genesis TV</h1>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-success" onclick="cargarDatosIniciales()">📥 Restaurar Contraseñas 2407</button>
+            <button class="btn" onclick="abrirModal()">➕ Nuevo Cliente</button>
+        </div>
+    </header>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Total Clientes</h3>
+            <div class="number" id="statTotal">0</div>
+        </div>
+        <div class="stat-card">
+            <h3>Al Día / Vigentes</h3>
+            <div class="number" style="color: var(--success);" id="statActivos">0</div>
+        </div>
+        <div class="stat-card">
+            <h3>Vencidos</h3>
+            <div class="number" style="color: var(--danger);" id="statVencidos">0</div>
+        </div>
+    </div>
+
+    <div class="toolbar">
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Buscar por N°, nombre, servicio o celu..." onkeyup="renderizarTabla()">
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table id="accountsTable">
+            <thead>
+                <tr>
+                    <th>N°</th>
+                    <th>Cliente</th>
+                    <th>Servicio / Usuario</th>
+                    <th>Contraseña</th>
+                    <th>Dispositivo</th>
+                    <th>F. Alta</th>
+                    <th>Vence</th>
+                    <th>Días Rest.</th>
+                    <th>Notas</th>
+                    <th>Promos</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <!-- Datos dinámicos -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal" id="clienteModal">
+    <div class="modal-content">
+        <h2 id="modalTitle">Agregar Nuevo Cliente</h2>
+        <input type="hidden" id="editId" value="">
+        <div class="form-group">
+            <label>Nombre del Cliente</label>
+            <input type="text" id="nombre" placeholder="Ej. Andujar">
+        </div>
+        <div class="form-group">
+            <label>Servicio / Usuario (Correo)</label>
+            <input type="text" id="servicio" placeholder="Ej. pablo@tvplus.com">
+        </div>
+        <div class="form-group">
+            <label>Contraseña</label>
+            <input type="text" id="contrasena" placeholder="Contraseña de acceso">
+        </div>
+        <div class="form-group">
+            <label>Dispositivo</label>
+            <select id="dispositivo">
+                <option value="TV">TV</option>
+                <option value="Tablet">Tablet</option>
+                <option value="TvBox">TvBox</option>
+                <option value="Celular">Celular</option>
+                <option value="Tv Stick">Tv Stick</option>
+                <option value="Google Chrom">Google Chrom</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Fecha de Alta</label>
+            <input type="date" id="fechaAlta">
+        </div>
+        <div class="form-group">
+            <label>Días Contratados (Vigencia)</label>
+            <select id="diasContratados" onchange="actualizarNotaAutomatica()">
+                <option value="30">30 Días (1 Mes)</option>
+                <option value="31">31 Días (1 Mes)</option>
+                <option value="60">60 Días (2 Meses)</option>
+                <option value="90">90 Días (3 Meses)</option>
+                <option value="180">180 Días (6 Meses)</option>
+                <option value="365">365 Días (1 Año)</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Notas</label>
+            <input type="text" id="notas" placeholder="Ej. 1 mes">
+        </div>
+        <div class="form-group">
+            <label>Promos Activas</label>
+            <input type="text" id="promos" placeholder="Ej. 3x2 (RENUEVA AGOSTO)">
+        </div>
+        <div class="form-group">
+            <label>Número de WhatsApp (con característica, sin +)</label>
+            <input type="text" id="whatsapp" placeholder="Ej. 3447552793">
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
+            <button class="btn" onclick="guardarCliente()">Guardar Cliente</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Configuración de Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyD...",
+        authDomain: "genesis-tv-manager.firebaseapp.com",
+        projectId: "genesis-tv-manager",
+        storageBucket: "genesis-tv-manager.appspot.com",
+        messagingSenderId: "...",
+        appId: "..."
+    };
+
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+
+    const PIN_SECRETO = "1986"; // PIN configurado
+    let passwordsVisibles = false;
+    let clientes = [];
+
+    // Lista definitiva con los datos exactos que aparecen en tu panel
+    const clientesIniciales = [
+        { nombre: "Ale", servicio: "aleyano@tvplus.com", contrasena: "ale2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447646962" },
+        { nombre: "Alfredo", servicio: "alfredoo@tvplus.com", contrasena: "alf2407", dispositivo: "TV", fechaAlta: "2026-07-25", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447436776" },
+        { nombre: "Andrea", servicio: "andreaa@tvplus.com", contrasena: "and2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447525792" },
+        { nombre: "Araceli", servicio: "ara@tvplus.com", contrasena: "ara2407", dispositivo: "TvBox", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447564993" },
+        { nombre: "Aye", servicio: "ayeale@tvplus.com", contrasena: "aye2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3446400440" },
+        { nombre: "Daiana", servicio: "daiana2@tvplus.com", contrasena: "dai2407", dispositivo: "TvBox", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447647608" },
+        { nombre: "Dani", servicio: "pkgym@tvplus.com", contrasena: "dani2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "resta del gym", promos: "-", whatsapp: "3447553959" },
+        { nombre: "Gabriel", servicio: "gabiii@tvplus.com", contrasena: "gabi2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447466444" },
+        { nombre: "Gisela", servicio: "gise@tvplus.com", contrasena: "gise2407", dispositivo: "Tv Stick", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447464582" },
+        { nombre: "Guineo", servicio: "guineo@tvplus.com", contrasena: "guine2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447465534" },
+        { nombre: "Hugo", servicio: "hugo2@tvplus.com", contrasena: "hugo2407", dispositivo: "Google Chrom", fechaAlta: "2026-08-24", diasContratados: 31, notas: "3x4 promo", promos: "3x4 (RENUEVA EN SEPT)", whatsapp: "3447647300" },
+        { nombre: "Jimena", servicio: "jimee@tvplus.com", contrasena: "jime2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447574832" },
+        { nombre: "Julian", servicio: "julian@tvplus.com", contrasena: "jul2507", dispositivo: "TV", fechaAlta: "2026-07-25", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "34454979670" },
+        { nombre: "Julieta", servicio: "julieta@tvplus.com", contrasena: "julieta2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "2 meses", promos: "-", whatsapp: "3454348144" },
+        { nombre: "Lalo", servicio: "lalod@tvplus.com", contrasena: "lalo2407", dispositivo: "Tv Box", fechaAlta: "2026-07-24", diasContratados: 31, notas: "3x4 promo", promos: "3x2 (RENUEVA AGOSTO)", whatsapp: "3447505966" },
+        { nombre: "Laura", servicio: "lauraaa@tvplus.com", contrasena: "lau2407", dispositivo: "TvBox", fechaAlta: "2026-07-24", diasContratados: 31, notas: "3x4 promo", promos: "3x2 (RENUEVA AGOSTO)", whatsapp: "3447491080" },
+        { nombre: "Marcelo", servicio: "marceloo@tvplus.com", contrasena: "marce2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447542645" },
+        { nombre: "Mauri", servicio: "mauri@tvplus.com", contrasena: "mauri2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "3x2 (RENUEVA AGOSTO)", whatsapp: "3447430526" },
+        { nombre: "Melisa", servicio: "melisac@tvplus.com", contrasena: "meli2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3454114833" },
+        { nombre: "Milton", servicio: "miltona@tvplus.com", contrasena: "mil2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447598963" },
+        { nombre: "Olga", servicio: "olgui@tvplus.com", contrasena: "olga2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447552219" },
+        { nombre: "Pablo", servicio: "pabloo@tvplus.com", contrasena: "pab2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447642789" },
+        { nombre: "Petilubo", servicio: "petilubo@tvplus2.com", contrasena: "peti2307", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 30, notas: "1 mes", promos: "-", whatsapp: "3447552793" },
+        { nombre: "Ramiro", servicio: "ramiro@tvplus.com", contrasena: "rami2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447503381" },
+        { nombre: "Roxana", servicio: "roxana@tvplus.com", contrasena: "ros2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447465616" },
+        { nombre: "Vanesa", servicio: "vane@tvplus.com", contrasena: "van2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "2 meses", promos: "-", whatsapp: "3447503637" },
+        { nombre: "Victor", servicio: "victorf@tvplus.com", contrasena: "vic2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447506308" },
+        { nombre: "Yamila", servicio: "yamib@tvplus.com", contrasena: "yami2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447601704" }
+    ];
+
+    function cargarDatosIniciales() {
+        if (confirm("¿Querés restaurar las contraseñas oficiales en la base de datos?")) {
+            const batch = db.batch();
+            clientesIniciales.forEach((c) => {
+                const nuevoRef = db.collection("clientes").doc();
+                batch.set(nuevoRef, c);
+            });
+            batch.commit().then(() => {
+                alert("¡Base de datos sincronizada con las contraseñas correctas!");
+            }).catch(err => {
+                console.error("Error:", err);
+                alert("Hubo un error al restaurar los datos.");
+            });
+        }
+    }
+
+    function cargarClientes() {
+        db.collection("clientes").onSnapshot((snapshot) => {
+            clientes = [];
+            snapshot.forEach((doc) => {
+                clientes.push({ id: doc.id, ...doc.data() });
+            });
+            ordenarYRenderizar();
+        }, (error) => {
+            console.error("Error al escuchar Firestore:", error);
+        });
+    }
+
+    function ordenarYRenderizar() {
+        clientes.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
+        renderizarTabla();
+    }
+
+    function enfocarBuscador() {
+        const inputBuscador = document.getElementById("searchInput");
+        inputBuscador.focus();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function solicitarPin() {
+        if (passwordsVisibles) {
+            passwordsVisibles = false;
+            renderizarTabla();
+            return;
+        }
+        const ingreso = prompt("Ingrese el PIN de seguridad para ver las contraseñas:");
+        if (ingreso === PIN_SECRETO) {
+            passwordsVisibles = true;
+            renderizarTabla();
+        } else if (ingreso !== null) {
+            alert("PIN incorrecto.");
+        }
+    }
+
+    function calcularVencimiento(fechaAltaStr, dias) {
+        if (!fechaAltaStr) return new Date();
+        const [anio, mes, dia] = fechaAltaStr.split('-');
+        const fecha = new Date(anio, mes - 1, dia);
+        fecha.setDate(fecha.getDate() + parseInt(dias));
+        return fecha;
+    }
+
+    function calcularDiasRestantes(fechaVencimientoObj) {
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+        fechaVencimientoObj.setHours(0, 0, 0, 0);
+        const diferenciaTiempo = fechaVencimientoObj - hoy;
+        return Math.ceil(diferenciaTiempo / (1000 * 60 * 60 * 24));
+    }
+
+    function formatearFecha(fechaObj) {
+        const dia = String(fechaObj.getDate()).padStart(2, '0');
+        const mes = String(fechaObj.getMonth() + 1).padStart(2, '0');
+        const anio = fechaObj.getFullYear();
+        return `${dia}/${mes}/${anio}`;
+    }
+
+    function formatearFechaInput(fechaStr) {
+        if (!fechaStr) return "";
+        const partes = fechaStr.split('-');
+        if (partes.length !== 3) return fechaStr;
+        return `${partes[2]}/${partes[1]}/${partes[0]}`;
+    }
+
+    function actualizarNotaAutomatica() {
+        const dias = document.getElementById("diasContratados").value;
+        const inputNotas = document.getElementById("notas");
+        if (dias == "30" || dias == "31") inputNotas.value = "1 mes";
+        else if (dias == "60") inputNotas.value = "2 meses";
+        else if (dias == "90") inputNotas.value = "3 meses";
+        else if (dias == "180") inputNotas.value = "6 meses";
+        else if (dias == "365") inputNotas.value = "1 año";
+    }
+
+    function renderizarTabla() {
+        const tbody = document.getElementById("tableBody");
+        const filtro = document.getElementById("searchInput").value.toLowerCase();
+        tbody.innerHTML = "";
+
+        let total = clientes.length;
+        let activos = 0;
+        let vencidos = 0;
+
+        clientes.forEach((c, index) => {
+            const numeroCliente = index + 1;
+            const textoFila = `#${numeroCliente} ${c.nombre} ${c.servicio} ${c.whatsapp} ${c.dispositivo || ''}`.toLowerCase();
+            if (filtro && !textoFila.includes(filtro)) return;
+
+            const fechaVencObj = calcularVencimiento(c.fechaAlta, c.diasContratados);
+            const diasRestantes = calcularDiasRestantes(fechaVencObj);
+            let badgeHTML = "";
+            let esVencido = false;
+            let esPorVencer = false;
+
+            if (diasRestantes < 0) {
+                esVencido = true;
+                vencidos++;
+                badgeHTML = `<span class="badge danger">Vencido</span>`;
+            } else if (diasRestantes <= 3) {
+                esPorVencer = true;
+                activos++;
+                badgeHTML = `<span class="badge warning">${diasRestantes}</span>`;
+            } else {
+                activos++;
+                badgeHTML = `<span class="badge success">${diasRestantes}</span>`;
+            }
+
+            let mensajeWpp = "";
+            let claseBtnWpp = "btn-wa";
+            let textoBtnWpp = "💬 WhatsApp";
+
+            if (esVencido) {
+                mensajeWpp = `Hola ${c.nombre}, te escribo de Genesis TV para avisarte que tu cuenta venció. ¿Querés renovarla?`;
+                textoBtnWpp = "💬 Cobrar";
+            } else if (esPorVencer) {
+                mensajeWpp = `Hola ${c.nombre}, ¿cómo estás? Tu servicio de TV vence en ${diasRestantes} días. Si deseas renovar, podés transferir, te dejo el alias por si no puedo responder, me enviás el comprobante y luego me comunico con vos.\n\nALIAS: pablo.television\nA nombre de: Pablo Raul Berdala`;
+                textoBtnWpp = "💬 Avisar";
+                claseBtnWpp += " aviso";
+            } else {
+                mensajeWpp = `Hola ${c.nombre}, te escribo de Genesis TV. ¡Tu servicio marcha al día!`;
+                textoBtnWpp = "💬 Contactar";
+            }
+
+            const passwordDisplay = passwordsVisibles ? c.contrasena : "••••••••";
+
+            const tr = document.createElement("tr");
+            if (esVencido) tr.classList.add("vencido");
+
+            tr.innerHTML = `
+                <td><span class="client-id">#${numeroCliente}</span></td>
+                <td><strong>${c.nombre}</strong></td>
+                <td>${c.servicio}</td>
+                <td>
+                    <div class="password-container">
+                        <span>${passwordDisplay}</span>
+                        <button class="btn-icon" onclick="solicitarPin()" title="Ver/Ocultar Contraseñas">🔒</button>
+                    </div>
+                </td>
+                <td>${c.dispositivo || 'TV'}</td>
+                <td>${formatearFechaInput(c.fechaAlta)}</td>
+                <td>${formatearFecha(fechaVencObj)}</td>
+                <td>${badgeHTML}</td>
+                <td>${c.notas}</td>
+                <td>${c.promos}</td>
+                <td>
+                    <div class="actions-cell">
+                        <a href="https://wa.me/${c.whatsapp}?text=${encodeURIComponent(mensajeWpp)}" target="_blank" class="${claseBtnWpp}">${textoBtnWpp}</a>
+                        <button class="btn-icon" onclick="editarCliente('${c.id}')" title="Editar">✏️</button>
+                        <button class="btn-icon delete" onclick="eliminarCliente('${c.id}')" title="Eliminar">🗑️</button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        document.getElementById("statTotal").innerText = total;
+        document.getElementById("statActivos").innerText = activos;
+        document.getElementById("statVencidos").innerText = vencidos;
+    }
+
+    function abrirModal() {
+        document.getElementById("modalTitle").innerText = "Agregar Nuevo Cliente";
+        document.getElementById("editId").value = "";
+        document.getElementById("nombre").value = "";
+        document.getElementById("servicio").value = "@tvplus.com";
+        document.getElementById("contrasena").value = "";
+        document.getElementById("dispositivo").value = "TV";
+        
+        const hoyStr = new Date().toISOString().split('T')[0];
+        document.getElementById("fechaAlta").value = hoyStr;
+        
+        document.getElementById("diasContratados").value = "31";
+        document.getElementById("notas").value = "1 mes";
+        document.getElementById("promos").value = "-";
+        document.getElementById("whatsapp").value = "";
+        document.getElementById("clienteModal").style.display = "flex";
+    }
+
+    function cerrarModal() {
+        document.getElementById("clienteModal").style.display = "none";
+    }
+
+    function guardarCliente() {
+        const id = document.getElementById("editId").value;
+        const clienteObj = {
+            nombre: document.getElementById("nombre").value,
+            servicio: document.getElementById("servicio").value.trim(),
+            contrasena: document.getElementById("contrasena").value,
+            dispositivo: document.getElementById("dispositivo").value,
+            fechaAlta: document.getElementById("fechaAlta").value,
+            diasContratados: parseInt(document.getElementById("diasContratados").value),
+            notas: document.getElementById("notas").value,
+            promos: document.getElementById("promos").value,
+            whatsapp: document.getElementById("whatsapp").value
+        };
+
+        if (!clienteObj.nombre || !clienteObj.fechaAlta) {
+            alert("Por lo menos completá el nombre y la fecha de alta.");
+            return;
+        }
+
+        cerrarModal();
+
+        const operacion = !id 
+            ? db.collection("clientes").add(clienteObj)
+            : db.collection("clientes").doc(id).update(clienteObj);
+
+        operacion.catch((error) => {
+            console.error("Error al guardar en Firestore:", error);
+            alert("No se pudo sincronizar con la base de datos, revisá tu conexión.");
+        });
+    }
+
+    function editarCliente(id) {
+        const c = clientes.find(item => item.id === id);
+        if (!c) return;
+
+        document.getElementById("modalTitle").innerText = "Editar Cliente";
+        document.getElementById("editId").value = c.id;
+        document.getElementById("nombre").value = c.nombre;
+        document.getElementById("servicio").value = c.servicio;
+        document.getElementById("contrasena").value = c.contrasena;
+        document.getElementById("dispositivo").value = c.dispositivo || "TV";
+        document.getElementById("fechaAlta").value = c.fechaAlta;
+        document.getElementById("diasContratados").value = c.diasContratados || 31;
+        document.getElementById("notas").value = c.notas;
+        document.getElementById("promos").value = c.promos;
+        document.getElementById("whatsapp").value = c.whatsapp;
+        document.getElementById("clienteModal").style.display = "flex";
+    }
+
+    function eliminarCliente(id) {
+        const c = clientes.find(item => item.id === id);
+        if (confirm(`¿Seguro querés eliminar a ${c ? c.nombre : 'este cliente'}?`)) {
+            db.collection("clientes").doc(id).delete().catch(err => {
+                console.error("Error al eliminar:", err);
+            });
+        }
+    }
+
+    window.onload = cargarClientes;
+</script>
+
+</body>
+</html>
