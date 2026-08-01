@@ -452,7 +452,6 @@
     let passwordsVisibles = false;
     let clientes = [];
 
-    // Lista base de respaldo para carga automática única
     const clientesIniciales = [
         { nombre: "Ale", servicio: "aleyano@tvplus.com", contrasena: "ale2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447552793" },
         { nombre: "Alfredo", servicio: "alfredoo@tvplus.com", contrasena: "alf2407", dispositivo: "TV", fechaAlta: "2026-07-25", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447552793" },
@@ -460,22 +459,39 @@
         { nombre: "Araceli", servicio: "ara@tvplus.com", contrasena: "ara2407", dispositivo: "TvBox", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447552793" },
         { nombre: "Aye", servicio: "ayeale@tvplus.com", contrasena: "aye2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447552793" },
         { nombre: "Daiana", servicio: "daiana2@tvplus.com", contrasena: "dai2407", dispositivo: "TvBox", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447552793" },
-        { nombre: "Dani", servicio: "pkgym@tvplus.com", contrasena: "dani2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "resta del gym", promos: "-", whatsapp: "3447552793" }
+        { nombre: "Dani", servicio: "pkgym@tvplus.com", contrasena: "dani2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "resta del gym", promos: "-", whatsapp: "3447552793" },
+        { nombre: "Ezequiel", servicio: "ezequiel@tvplus.com", contrasena: "eze2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447552793" },
+        { nombre: "Fabian", servicio: "fabian@tvplus.com", contrasena: "fab2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447552793" },
+        { nombre: "Gaston", servicio: "gaston@tvplus.com", contrasena: "gas2407", dispositivo: "TvBox", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447552793" },
+        { nombre: "German", servicio: "german@tvplus.com", contrasena: "ger2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447552793" },
+        { nombre: "Guillermo", servicio: "guillermo@tvplus.com", contrasena: "gui2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447552793" },
+        { nombre: "Gustavo", servicio: "gustavo@tvplus.com", contrasena: "gus2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447552793" },
+        { nombre: "Hernan", servicio: "hernan@tvplus.com", contrasena: "her2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447552793" },
+        { nombre: "Javier", servicio: "javier@tvplus.com", contrasena: "jav2407", dispositivo: "TvBox", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447552793" },
+        { nombre: "Jorge", servicio: "jorge@tvplus.com", contrasena: "jor2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447552793" },
+        { nombre: "Juan", servicio: "juan@tvplus.com", contrasena: "jua2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447552793" },
+        { nombre: "Lucas", servicio: "lucas@tvplus.com", contrasena: "luc2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447552793" },
+        { nombre: "Luis", servicio: "luis@tvplus.com", contrasena: "lui2407", dispositivo: "TvBox", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447552793" },
+        { nombre: "Marcelo", servicio: "marcelo@tvplus.com", contrasena: "mar2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447552793" },
+        { nombre: "Mario", servicio: "mario@tvplus.com", contrasena: "mar2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447552793" },
+        { nombre: "Martin", servicio: "martin@tvplus.com", contrasena: "mat2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447552793" },
+        { nombre: "Matias", servicio: "matias@tvplus.com", contrasena: "mat2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447552793" },
+        { nombre: "Maxi", servicio: "maxi@tvplus.com", contrasena: "max2407", dispositivo: "TvBox", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447552793" },
+        { nombre: "Nicolas", servicio: "nicolas@tvplus.com", contrasena: "nic2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447552793" },
+        { nombre: "Pablo", servicio: "pablo@tvplus.com", contrasena: "pab2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447552793" },
+        { nombre: "Pedro", servicio: "pedro@tvplus.com", contrasena: "ped2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447552793" },
+        { nombre: "Sergio", servicio: "sergio@tvplus.com", contrasena: "ser2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447552793" }
     ];
 
     function cargarClientes() {
         db.collection("clientes").onSnapshot((snapshot) => {
             if (snapshot.empty) {
-                // Si la base está totalmente vacía, sube automáticamente la lista inicial una sola vez
-                console.log("Base vacía detectada. Migrando clientes iniciales a Firestore...");
                 const batch = db.batch();
                 clientesIniciales.forEach(c => {
                     const nuevoDocRef = db.collection("clientes").doc();
                     batch.set(nuevoDocRef, c);
                 });
-                batch.commit().then(() => {
-                    console.log("¡Migración automática completada con éxito!");
-                }).catch(err => console.error("Error en migración automática:", err));
+                batch.commit().catch(err => console.error("Error en migración:", err));
                 return;
             }
 
@@ -486,7 +502,7 @@
             ordenarYRenderizar();
         }, (error) => {
             console.error("Error al escuchar Firestore:", error);
-            alert("No se pudo conectar con Firestore. Revisa tus credenciales.");
+            alert("No se pudo conectar con Firestore.");
         });
     }
 
@@ -629,7 +645,7 @@
                 <td>
                     <div class="actions-cell">
                         <a href="https://wa.me/${c.whatsapp}?text=${encodeURIComponent(mensajeWpp)}" target="_blank" class="${claseBtnWpp}">${textoBtnWpp}</a>
-                        <button class="btn-icon" onclick="editarCliente('${c.id}')" title="Editar">✏️</button>
+                        <button class="btn-icon" onclick="editarClienteSeguro('${c.id}')" title="Editar">✏️</button>
                         <button class="btn-icon delete" onclick="eliminarCliente('${c.id}')" title="Eliminar">🗑️</button>
                     </div>
                 </td>
@@ -693,6 +709,15 @@
             console.error("Error al guardar en Firestore:", error);
             alert("No se pudo sincronizar con la base de datos.");
         });
+    }
+
+    function editarClienteSeguro(id) {
+        const ingreso = prompt("Ingrese el PIN de seguridad para editar los datos del cliente:");
+        if (ingreso === PIN_SECRETO) {
+            editarCliente(id);
+        } else if (ingreso !== null) {
+            alert("PIN incorrecto.");
+        }
     }
 
     function editarCliente(id) {
