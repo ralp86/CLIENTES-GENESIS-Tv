@@ -132,7 +132,6 @@
             width: 320px;
         }
 
-        /* Botón fantasma vertical lateral */
         .btn-lateral-buscar {
             position: fixed;
             right: 0;
@@ -314,7 +313,6 @@
 </head>
 <body>
 
-<!-- Botón lateral fantasma para buscar rápido -->
 <button class="btn-lateral-buscar" onclick="enfocarBuscador()" title="Buscar cliente rápido">🔍 Buscar</button>
 
 <div class="container">
@@ -323,7 +321,6 @@
             <h1>Panel de Control - Genesis TV</h1>
         </div>
         <div class="header-actions">
-            <button class="btn btn-success" onclick="cargarDatosIniciales()">📥 Restaurar Contraseñas 2407</button>
             <button class="btn" onclick="abrirModal()">➕ Nuevo Cliente</button>
         </div>
     </header>
@@ -437,7 +434,6 @@
 </div>
 
 <script>
-    // Configuración de Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyD...",
         authDomain: "genesis-tv-manager.firebaseapp.com",
@@ -452,57 +448,9 @@
     }
     const db = firebase.firestore();
 
-    const PIN_SECRETO = "1986"; // PIN configurado
+    const PIN_SECRETO = "1986";
     let passwordsVisibles = false;
     let clientes = [];
-
-    // Lista definitiva con los datos exactos que aparecen en tu panel
-    const clientesIniciales = [
-        { nombre: "Ale", servicio: "aleyano@tvplus.com", contrasena: "ale2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447646962" },
-        { nombre: "Alfredo", servicio: "alfredoo@tvplus.com", contrasena: "alf2407", dispositivo: "TV", fechaAlta: "2026-07-25", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447436776" },
-        { nombre: "Andrea", servicio: "andreaa@tvplus.com", contrasena: "and2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447525792" },
-        { nombre: "Araceli", servicio: "ara@tvplus.com", contrasena: "ara2407", dispositivo: "TvBox", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447564993" },
-        { nombre: "Aye", servicio: "ayeale@tvplus.com", contrasena: "aye2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3446400440" },
-        { nombre: "Daiana", servicio: "daiana2@tvplus.com", contrasena: "dai2407", dispositivo: "TvBox", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447647608" },
-        { nombre: "Dani", servicio: "pkgym@tvplus.com", contrasena: "dani2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "resta del gym", promos: "-", whatsapp: "3447553959" },
-        { nombre: "Gabriel", servicio: "gabiii@tvplus.com", contrasena: "gabi2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447466444" },
-        { nombre: "Gisela", servicio: "gise@tvplus.com", contrasena: "gise2407", dispositivo: "Tv Stick", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447464582" },
-        { nombre: "Guineo", servicio: "guineo@tvplus.com", contrasena: "guine2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447465534" },
-        { nombre: "Hugo", servicio: "hugo2@tvplus.com", contrasena: "hugo2407", dispositivo: "Google Chrom", fechaAlta: "2026-08-24", diasContratados: 31, notas: "3x4 promo", promos: "3x4 (RENUEVA EN SEPT)", whatsapp: "3447647300" },
-        { nombre: "Jimena", servicio: "jimee@tvplus.com", contrasena: "jime2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447574832" },
-        { nombre: "Julian", servicio: "julian@tvplus.com", contrasena: "jul2507", dispositivo: "TV", fechaAlta: "2026-07-25", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "34454979670" },
-        { nombre: "Julieta", servicio: "julieta@tvplus.com", contrasena: "julieta2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "2 meses", promos: "-", whatsapp: "3454348144" },
-        { nombre: "Lalo", servicio: "lalod@tvplus.com", contrasena: "lalo2407", dispositivo: "Tv Box", fechaAlta: "2026-07-24", diasContratados: 31, notas: "3x4 promo", promos: "3x2 (RENUEVA AGOSTO)", whatsapp: "3447505966" },
-        { nombre: "Laura", servicio: "lauraaa@tvplus.com", contrasena: "lau2407", dispositivo: "TvBox", fechaAlta: "2026-07-24", diasContratados: 31, notas: "3x4 promo", promos: "3x2 (RENUEVA AGOSTO)", whatsapp: "3447491080" },
-        { nombre: "Marcelo", servicio: "marceloo@tvplus.com", contrasena: "marce2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447542645" },
-        { nombre: "Mauri", servicio: "mauri@tvplus.com", contrasena: "mauri2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "3x2 (RENUEVA AGOSTO)", whatsapp: "3447430526" },
-        { nombre: "Melisa", servicio: "melisac@tvplus.com", contrasena: "meli2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3454114833" },
-        { nombre: "Milton", servicio: "miltona@tvplus.com", contrasena: "mil2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447598963" },
-        { nombre: "Olga", servicio: "olgui@tvplus.com", contrasena: "olga2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447552219" },
-        { nombre: "Pablo", servicio: "pabloo@tvplus.com", contrasena: "pab2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447642789" },
-        { nombre: "Petilubo", servicio: "petilubo@tvplus2.com", contrasena: "peti2307", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 30, notas: "1 mes", promos: "-", whatsapp: "3447552793" },
-        { nombre: "Ramiro", servicio: "ramiro@tvplus.com", contrasena: "rami2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447503381" },
-        { nombre: "Roxana", servicio: "roxana@tvplus.com", contrasena: "ros2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447465616" },
-        { nombre: "Vanesa", servicio: "vane@tvplus.com", contrasena: "van2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "2 meses", promos: "-", whatsapp: "3447503637" },
-        { nombre: "Victor", servicio: "victorf@tvplus.com", contrasena: "vic2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447506308" },
-        { nombre: "Yamila", servicio: "yamib@tvplus.com", contrasena: "yami2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447601704" }
-    ];
-
-    function cargarDatosIniciales() {
-        if (confirm("¿Querés restaurar las contraseñas oficiales en la base de datos?")) {
-            const batch = db.batch();
-            clientesIniciales.forEach((c) => {
-                const nuevoRef = db.collection("clientes").doc();
-                batch.set(nuevoRef, c);
-            });
-            batch.commit().then(() => {
-                alert("¡Base de datos sincronizada con las contraseñas correctas!");
-            }).catch(err => {
-                console.error("Error:", err);
-                alert("Hubo un error al restaurar los datos.");
-            });
-        }
-    }
 
     function cargarClientes() {
         db.collection("clientes").onSnapshot((snapshot) => {
@@ -513,6 +461,7 @@
             ordenarYRenderizar();
         }, (error) => {
             console.error("Error al escuchar Firestore:", error);
+            alert("No se pudo conectar con Firestore. Revisa tus credenciales y reglas de seguridad.");
         });
     }
 
