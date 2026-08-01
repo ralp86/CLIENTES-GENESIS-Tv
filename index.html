@@ -452,8 +452,33 @@
     let passwordsVisibles = false;
     let clientes = [];
 
+    // Lista base de respaldo para carga automática única
+    const clientesIniciales = [
+        { nombre: "Ale", servicio: "aleyano@tvplus.com", contrasena: "ale2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447552793" },
+        { nombre: "Alfredo", servicio: "alfredoo@tvplus.com", contrasena: "alf2407", dispositivo: "TV", fechaAlta: "2026-07-25", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447552793" },
+        { nombre: "Andrea", servicio: "andreaa@tvplus.com", contrasena: "and2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447552793" },
+        { nombre: "Araceli", servicio: "ara@tvplus.com", contrasena: "ara2407", dispositivo: "TvBox", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447552793" },
+        { nombre: "Aye", servicio: "ayeale@tvplus.com", contrasena: "aye2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447552793" },
+        { nombre: "Daiana", servicio: "daiana2@tvplus.com", contrasena: "dai2407", dispositivo: "TvBox", fechaAlta: "2026-07-24", diasContratados: 31, notas: "1 mes", promos: "-", whatsapp: "3447552793" },
+        { nombre: "Dani", servicio: "pkgym@tvplus.com", contrasena: "dani2407", dispositivo: "TV", fechaAlta: "2026-07-24", diasContratados: 31, notas: "resta del gym", promos: "-", whatsapp: "3447552793" }
+    ];
+
     function cargarClientes() {
         db.collection("clientes").onSnapshot((snapshot) => {
+            if (snapshot.empty) {
+                // Si la base está totalmente vacía, sube automáticamente la lista inicial una sola vez
+                console.log("Base vacía detectada. Migrando clientes iniciales a Firestore...");
+                const batch = db.batch();
+                clientesIniciales.forEach(c => {
+                    const nuevoDocRef = db.collection("clientes").doc();
+                    batch.set(nuevoDocRef, c);
+                });
+                batch.commit().then(() => {
+                    console.log("¡Migración automática completada con éxito!");
+                }).catch(err => console.error("Error en migración automática:", err));
+                return;
+            }
+
             clientes = [];
             snapshot.forEach((doc) => {
                 clientes.push({ id: doc.id, ...doc.data() });
@@ -461,7 +486,7 @@
             ordenarYRenderizar();
         }, (error) => {
             console.error("Error al escuchar Firestore:", error);
-            alert("No se pudo conectar con Firestore. Revisa tus credenciales y reglas de seguridad.");
+            alert("No se pudo conectar con Firestore. Revisa tus credenciales.");
         });
     }
 
@@ -666,7 +691,7 @@
 
         operacion.catch((error) => {
             console.error("Error al guardar en Firestore:", error);
-            alert("No se pudo sincronizar con la base de datos, revisá tu conexión.");
+            alert("No se pudo sincronizar con la base de datos.");
         });
     }
 
